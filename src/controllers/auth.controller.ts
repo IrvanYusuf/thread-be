@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma";
 import Validation from "../lib/validation";
 import { RegisterValidatorSchema } from "../validations/auth.validator";
+import { AVATAR_PROFILES } from "../constant";
 
 class AuthController {
   async signup(req: Request, res: Response) {
@@ -21,11 +22,14 @@ class AuthController {
       validated.password,
       CONFIG.SALT_ROUNDS,
     );
+
+    const rand = Math.floor(Math.random() * AVATAR_PROFILES.length);
     const user = await prisma.user.create({
       data: {
         name: validated.name,
         email: validated.email,
         password: hashedPassword,
+        image: AVATAR_PROFILES[rand],
       },
       omit: { password: true },
     });
