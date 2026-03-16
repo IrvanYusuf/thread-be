@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id          String       @id @default(cuid())
+  email       String       @unique
+  name        String?
+  password    String // Akan menyimpan hash dari bcrypt
+  image       String? // URL foto profil
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  threads     Thread[]
+  saveThreads SaveThread[]
+  comments    Comment[]
+  likes       ThreadLike[]
+
+  @@map("users")
+}
+
+model Thread {
+  id         String   @id @default(cuid())
+  title      String
+  content    String   @db.Text
+  authorId   String
+  categoryId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  author      User         @relation(fields: [authorId], references: [id])
+  category    Category     @relation(fields: [categoryId], references: [id])
+  saveThreads SaveThread[]
+  comments    Comment[]
+  likes       ThreadLike[]
+
+  @@map("threads")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  thread    Thread[]
+
+  @@map("categories")
+}
+
+model SaveThread {
+  id        String   @id @default(cuid())
+  userId    String
+  threadId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  thread Thread @relation(fields: [threadId], references: [id])
+
+  @@map("save_threads")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  authorId  String
+  threadId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author User   @relation(fields: [authorId], references: [id])
+  thread Thread @relation(fields: [threadId], references: [id])
+
+  @@map("comments")
+}
+
+model ThreadLike {
+  id        String   @id @default(cuid())
+  userId    String
+  threadId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  thread Thread @relation(fields: [threadId], references: [id])
+
+  @@unique([userId, threadId])
+  @@map("thread_likes")
+}
